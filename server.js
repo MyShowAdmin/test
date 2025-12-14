@@ -8,7 +8,9 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
 // ✅ Cloudinary auto-config via CLOUDINARY_URL
+console.log("CLOUDINARY_URL =", process.env.CLOUDINARY_URL);
 cloudinary.v2.config();
+console.log("CLOUDINARY_URL =", process.env.CLOUDINARY_URL);
 
 app.post("/upload-card", async (req, res) => {
   try {
