@@ -4,7 +4,11 @@ import { pool } from './db.js';
 import cloudinary from "cloudinary";
 import { generateImageHash } from "./utils/hash.js";
 import { savePendingImage } from "./store/imageStore.js";
+import webhookRoutes from './routes/webhook.js';
 
+
+/* Webhooks */
+app.use(webhookRoutes);
 
 const app = express();
 
