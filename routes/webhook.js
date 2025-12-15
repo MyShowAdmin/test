@@ -73,7 +73,22 @@ router.post(
           [hash, orderId, email]
         );
       }
-      await addLinksToOrderNote(orderId, images.map(i => i.cloudinary_url));
+
+      const { rows: images } = await pool.query(
+        `
+        SELECT cloudinary_url
+        FROM images
+        WHERE order_id = $1
+          AND status = 'paid'
+        `,
+        [orderId]
+      );
+
+      await addLinksToOrderNote(
+        orderId,
+        images.map(i => i.cloudinary_url)
+      );
+      
       console.log(`✅ Commande ${orderId} : ${hashes.length} image(s) validée(s)`);
 
       res.status(200).send('OK');
