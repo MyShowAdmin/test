@@ -1,5 +1,6 @@
 import express from 'express';
 import crypto from 'crypto';
+import { addLinksToOrderNote } from "./shopify/updateOrderNote.js";
 import { pool } from '../db.js';
 
 const router = express.Router();
@@ -72,7 +73,7 @@ router.post(
           [hash, orderId, email]
         );
       }
-
+      await addLinksToOrderNote(orderId, images.map(i => i.cloudinary_url));
       console.log(`✅ Commande ${orderId} : ${hashes.length} image(s) validée(s)`);
 
       res.status(200).send('OK');
