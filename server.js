@@ -10,15 +10,15 @@ const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
-app.get('/health/db', async (req, res) => {
+app.get('/health/db', async (_, res) => {
     try {
-      const r = await pool.query('SELECT NOW()');
-      res.json({ ok: true, time: r.rows[0] });
-    } catch (e) {
-      res.status(500).json({ ok: false, error: e.message });
+      await pool.query('SELECT 1');
+      res.send('DB OK');
+    } catch {
+      res.status(500).send('DB DOWN');
     }
   });
-
+  
 // ✅ Cloudinary auto-config via CLOUDINARY_URL
 console.log("CLOUDINARY_URL =", process.env.CLOUDINARY_URL);
 cloudinary.v2.config();
