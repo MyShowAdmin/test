@@ -1,8 +1,8 @@
 import crypto from "crypto";
 
-export function generateImageHash(imageUrl) {
+export function generateImageHash(jpegBase64) {
   return crypto
     .createHash("sha512")
-    .update(imageUrl)
+    .update(jpegBase64)
     .digest("hex");
 }

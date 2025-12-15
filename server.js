@@ -18,52 +18,50 @@ app.get('/health/db', async (_, res) => {
       res.status(500).send('DB DOWN');
     }
   });
-  
+
 // ✅ Cloudinary auto-config via CLOUDINARY_URL
 console.log("CLOUDINARY_URL =", process.env.CLOUDINARY_URL);
 cloudinary.v2.config();
 
 app.post("/upload-card", async (req, res) => {
-    console.log('BODY REÇU:', req.body);
-    console.log('jpegBase64 existe ?', !!req.body?.jpegBase64);
-    console.log('fileName:', req.body?.fileName);
+    try {
+      const { jpegBase64, fileName } = req.body;
   
-    if (!req.body?.jpegBase64) {
-      return res.status(400).json({ error: 'jpegBase64 manquant' });
-    }
+      if (!jpegBase64) {
+        return res.status(400).json({ error: "jpegBase64 manquant" });
+      }
   
-    if (!req.body.jpegBase64.startsWith('data:image/jpeg')) {
-      return res.status(400).json({ error: 'Format JPEG invalide' });
-    }
-  try {
-    const { jpegBase64, fileName } = req.body;
-
-    if (!jpegBase64) {
-      return res.status(400).json({ error: "Image manquante" });
-    }
-
-    const upload = await cloudinary.uploader.upload(jpegBase64, {
+      if (!jpegBase64.startsWith("data:image/jpeg")) {
+        return res.status(400).json({ error: "Format JPEG invalide" });
+      }
+  
+      // 🔐 Hash basé sur le CONTENU de l’image
+      const hash = generateImageHash(jpegBase64);
+  
+      // 🖼 Upload Cloudinary
+      const upload = await cloudinary.uploader.upload(jpegBase64, {
         folder: "cards",
+        public_id: hash,        // 👈 très important
+        overwrite: false,
         resource_type: "image"
       });
-    
+  
       const imageUrl = upload.secure_url;
-      const hash = generateImageHash(imageUrl);
-      console.log(hash)
-    
-      savePendingImage({ hash, imageUrl });
-    
-      res.json({
-        hash // ⚠️ PAS L’URL
-    });
-
-  } catch (err) {
-    console.error("Cloudinary error:", err);
-    return res.status(500).json({ error: "Upload échoué" });
-  }
-});
+  
+      // 💾 Sauvegarde DB
+      await savePendingImage({ hash, imageUrl });
+  
+      // ❌ NE JAMAIS retourner l’URL
+      res.json({ hash });
+  
+    } catch (err) {
+      console.error("Upload-card error:", err);
+      res.status(500).json({ error: "Upload échoué" });
+    }
+  });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+

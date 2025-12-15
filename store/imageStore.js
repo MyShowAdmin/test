@@ -1,23 +1,12 @@
-const pendingImages = new Map();
+import { pool } from "../db.js";
 
-export function savePendingImage({ hash, imageUrl }) {
-  pendingImages.set(hash, {
-    hash,
-    imageUrl,
-    paid: false,
-    createdAt: Date.now()
-  });
-}
-
-export function markImageAsPaid(hash, orderId) {
-  const item = pendingImages.get(hash);
-  if (!item) return null;
-
-  item.paid = true;
-  item.orderId = orderId;
-  return item;
-}
-
-export function getImageByHash(hash) {
-  return pendingImages.get(hash);
+export async function savePendingImage({ hash, imageUrl }) {
+  await pool.query(
+    `
+    INSERT INTO images (hash, cloudinary_url, status)
+    VALUES ($1, $2, 'pending')
+    ON CONFLICT (hash) DO NOTHING
+    `,
+    [hash, imageUrl]
+  );
 }
