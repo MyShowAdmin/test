@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import cloudinary from "cloudinary";
+import { generateImageHash } from "./utils/hash.js";
+import { savePendingImage } from "./store/imageStore.js";
 
 const app = express();
 
@@ -30,14 +32,19 @@ app.post("/upload-card", async (req, res) => {
       return res.status(400).json({ error: "Image manquante" });
     }
 
-    const upload = await cloudinary.v2.uploader.upload(jpegBase64, {
-      folder: "cartes-shopify",
-      public_id: fileName.replace(".jpg", ""),
-      resource_type: "image"
-    });
-
-    return res.json({
-      url: upload.secure_url
+    const upload = await cloudinary.uploader.upload(jpegBase64, {
+        folder: "cards",
+        resource_type: "image"
+      });
+    
+      const imageUrl = upload.secure_url;
+      const hash = generateImageHash(imageUrl);
+      console.log(hash)
+    
+      savePendingImage({ hash, imageUrl });
+    
+      res.json({
+        hash // ⚠️ PAS L’URL
     });
 
   } catch (err) {
