@@ -7,11 +7,12 @@ import { savePendingImage } from "./store/imageStore.js";
 import webhookRoutes from './routes/webhook.js';
 
 
-/* Webhooks */
-app.use(webhookRoutes);
+
 
 const app = express();
 
+/* Webhooks */
+app.use(webhookRoutes);
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.get('/health/db', async (_, res) => {
