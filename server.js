@@ -1,13 +1,23 @@
-import express from "express";
-import cors from "cors";
+import express from 'express';
+import cors from 'cors';
+import { pool } from './db.js';
 import cloudinary from "cloudinary";
 import { generateImageHash } from "./utils/hash.js";
 import { savePendingImage } from "./store/imageStore.js";
+
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
+app.get('/health/db', async (req, res) => {
+    try {
+      const r = await pool.query('SELECT NOW()');
+      res.json({ ok: true, time: r.rows[0] });
+    } catch (e) {
+      res.status(500).json({ ok: false, error: e.message });
+    }
+  });
 
 // ✅ Cloudinary auto-config via CLOUDINARY_URL
 console.log("CLOUDINARY_URL =", process.env.CLOUDINARY_URL);
