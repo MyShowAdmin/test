@@ -69,13 +69,27 @@ router.post(
         cloudinary.v2.url(r.cloudinary_public_id, {
           sign_url: true,
           secure: true,
-          expires_at: Math.floor(Date.now() / 1000) + 86400
+          expires_at: Math.floor(Date.now() / 1000) + (72 * 60 * 60)
         })
       );
 
       await addLinksToOrderNote(orderId, signedUrls);
 
       res.status(200).send('OK');
+
+      await sendPaidImagesEmail({
+        to: email,
+        signedUrls
+      });
+      
+      await pool.query(
+        `
+        UPDATE images
+        SET delivered_at = NOW()
+        WHERE image_id = ANY($1)
+        `,
+        [imageIds]
+      );
 
     } catch (err) {
       console.error('Webhook error:', err);
