@@ -1,3 +1,13 @@
+import express from 'express';
+import crypto from 'crypto';
+import { addLinksToOrderNote } from "./shopify/updateOrderNote.js";
+import { pool } from '../db.js';
+
+const router = express.Router();
+
+/**
+ * ⚠️ Shopify webhook requires RAW body
+ */
 router.post(
   '/webhooks/orders/paid',
   express.raw({ type: 'application/json' }),
