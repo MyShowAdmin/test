@@ -1,103 +1,74 @@
-import express from 'express';
-import crypto from 'crypto';
-import { addLinksToOrderNote } from "./shopify/updateOrderNote.js";
-import { pool } from '../db.js';
-
-const router = express.Router();
-
-/**
- * ⚠️ Shopify webhook requires RAW body
- */
 router.post(
   '/webhooks/orders/paid',
   express.raw({ type: 'application/json' }),
   async (req, res) => {
     try {
-      /* =====================
-         1. Vérification HMAC
-         ===================== */
-      const shopifySecret = process.env.SHOPIFY_WEBHOOK_SECRET;
-      const hmacHeader = req.get('X-Shopify-Hmac-Sha256');
-
+      // 1️⃣ Vérif HMAC
       const digest = crypto
-        .createHmac('sha256', shopifySecret)
-        .update(req.body, 'utf8')
+        .createHmac('sha256', process.env.SHOPIFY_WEBHOOK_SECRET)
+        .update(req.body)
         .digest('base64');
 
-      if (digest !== hmacHeader) {
-        console.error('❌ HMAC invalide');
+      if (digest !== req.get('X-Shopify-Hmac-Sha256')) {
         return res.status(401).send('Unauthorized');
       }
 
-      /* =====================
-         2. Parse commande
-         ===================== */
       const order = JSON.parse(req.body.toString());
-
       const orderId = order.id;
       const email = order.email;
 
-      /* =====================
-         3. Récupération des hash
-         ===================== */
-      const hashes = [];
+      // 2️⃣ Récupération image_id
+      const imageIds = [];
 
       for (const item of order.line_items || []) {
-        const prop = item.properties?.find(
-          p => p.name === 'image_hash'
-        );
-        if (prop?.value) {
-          hashes.push(prop.value);
-        }
+        const prop = item.properties?.find(p => p.name === 'image_id');
+        if (prop?.value) imageIds.push(prop.value);
       }
 
-      if (hashes.length === 0) {
-        console.warn(`⚠️ Commande ${orderId} sans image_hash`);
+      if (imageIds.length === 0) {
         return res.status(200).send('No images');
       }
 
-      /* =====================
-         4. Update DB (multi-hash)
-         ===================== */
-      for (const hash of hashes) {
-        await pool.query(
-          `
-          UPDATE images
-          SET
-            status = 'paid',
-            order_id = $2,
-            customer_email = $3,
-            paid_at = NOW()
-          WHERE hash = $1
-          `,
-          [hash, orderId, email]
-        );
-      }
-
-      const { rows: images } = await pool.query(
+      // 3️⃣ Update DB
+      await pool.query(
         `
-        SELECT cloudinary_url
-        FROM images
-        WHERE order_id = $1
-          AND status = 'paid'
+        UPDATE images
+        SET
+          status = 'paid',
+          order_id = $2,
+          customer_email = $3,
+          paid_at = NOW()
+        WHERE image_id = ANY($1)
         `,
-        [orderId]
+        [imageIds, orderId, email]
       );
 
-      await addLinksToOrderNote(
-        orderId,
-        images.map(i => i.cloudinary_url)
+      // 4️⃣ Récupération public_id
+      const { rows } = await pool.query(
+        `
+        SELECT cloudinary_public_id
+        FROM images
+        WHERE image_id = ANY($1)
+        `,
+        [imageIds]
       );
-      
-      console.log(`✅ Commande ${orderId} : ${hashes.length} image(s) validée(s)`);
+
+      // 5️⃣ URLs signées
+      const signedUrls = rows.map(r =>
+        cloudinary.v2.url(r.cloudinary_public_id, {
+          sign_url: true,
+          secure: true,
+          expires_at: Math.floor(Date.now() / 1000) + 86400
+        })
+      );
+
+      await addLinksToOrderNote(orderId, signedUrls);
 
       res.status(200).send('OK');
 
     } catch (err) {
-      console.error('🔥 Webhook error:', err);
+      console.error('Webhook error:', err);
       res.status(500).send('Server error');
     }
   }
 );
-
-export default router;
