@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { addLinksToOrderNote } from "./shopify/updateOrderNote.js";
 import cloudinary from 'cloudinary';
 import { pool } from '../db.js';
+import { sendPaidImagesEmail } from '../mail/sendPaidImages.js';
 
 const router = express.Router();
 
