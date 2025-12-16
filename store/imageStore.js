@@ -1,7 +1,9 @@
-import { pool } from "../db.js";
+import { pool } from '../db.js';
 
 export async function savePendingImage({ imageId, cloudinaryPublicId }) {
-  await pool.query(
+  console.log('💾 savePendingImage', { imageId, cloudinaryPublicId });
+
+  const result = await pool.query(
     `
     INSERT INTO images (
       image_id,
@@ -11,6 +13,7 @@ export async function savePendingImage({ imageId, cloudinaryPublicId }) {
     VALUES ($1, $2, 'pending')
     `,
     [imageId, cloudinaryPublicId]
-  );  
-    console.log('📦 DB result:', result.rows);
-  }
+  );
+  console.log('📦 DB result:', result.rows);
+  return result;
+}
