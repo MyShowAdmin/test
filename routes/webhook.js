@@ -1,6 +1,7 @@
 import express from 'express';
 import crypto from 'crypto';
 import { addLinksToOrderNote } from "./shopify/updateOrderNote.js";
+import cloudinary from 'cloudinary';
 import { pool } from '../db.js';
 
 const router = express.Router();
