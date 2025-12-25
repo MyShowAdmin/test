@@ -2,13 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import { pool } from './db.js';
 import cloudinary from "cloudinary";
-import { generateImageHash } from "./utils/hash.js";
 import { savePendingImage } from "./store/imageStore.js";
 import webhookRoutes from './routes/webhook.js';
 import { generateImageId } from './utils/id.js';
-
-
-
+import { renderCardImage } from './render/sharpRenderer.js';
 
 const app = express();
 
@@ -25,38 +22,41 @@ app.get('/health/db', async (_, res) => {
     }
   });
 
-// ✅ Cloudinary auto-config via CLOUDINARY_URL
 console.log("CLOUDINARY_URL =", process.env.CLOUDINARY_URL);
 cloudinary.v2.config();
 
-app.post("/upload-card", async (req, res) => {
+app.post("/render-card", async (req, res) => {
   try {
-    const { jpegBase64 } = req.body;
-
-    if (!jpegBase64?.startsWith("data:image/jpeg")) {
-      return res.status(400).json({ error: "Format JPEG invalide" });
-    }
+    const payload = req.body;
 
     const imageId = generateImageId();
 
-    const upload = await cloudinary.uploader.upload(jpegBase64, {
-      folder: "cards",
-      public_id: imageId,
-      resource_type: "image",
-      overwrite: false
-    });
+    // 1️⃣ Génération via Sharp
+    const { buffer } = await renderCardImage(payload);
 
+    // 2️⃣ Upload Cloudinary
+    const upload = await cloudinary.v2.uploader.upload(
+      `data:image/jpeg;base64,${buffer.toString('base64')}`,
+      {
+        folder: "cards",
+        public_id: imageId,
+        resource_type: "image",
+        overwrite: false
+      }
+    );
+
+    // 3️⃣ Sauvegarde DB
     await savePendingImage({
       imageId,
       cloudinaryPublicId: upload.public_id
     });
 
-    // ✅ ON RETOURNE imageId
+    // 4️⃣ Réponse pour Shopify
     res.json({ imageId });
 
   } catch (err) {
-    console.error("Upload-card error:", err);
-    res.status(500).json({ error: "Upload échoué" });
+    console.error("render-card error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
