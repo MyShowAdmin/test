@@ -44,6 +44,7 @@ function escapeXml(str = '') {
     .replace(/>/g, '&gt;');
 }
     export async function renderCardImage(payload) {
+    console.log(payload)
     const {
         background,
         userImage,
@@ -57,14 +58,10 @@ function escapeXml(str = '') {
        1️⃣ BACKGROUND
        =========================== */
 
-        const bgBuffer = await sharp(
-        await fetchImage(background.url)
-        )
-        .resize(background.width, background.height, {
-            fit: 'cover'
-        })
-        .png()
-        .toBuffer();
+    const bgBuffer = await sharp(await fetchImage(background.url))
+    .resize(background.width, background.height, { fit: 'cover' })
+    .png()
+    .toBuffer();
 
     /* ===========================
        2️⃣ IMAGE UTILISATEUR
