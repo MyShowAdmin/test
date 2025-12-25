@@ -27,7 +27,7 @@ cloudinary.v2.config();
 
 app.post("/render-card", async (req, res) => {
   try {
-    const payload = req.body;
+    const payload = req.body.payload;
 
     const imageId = generateImageId();
 

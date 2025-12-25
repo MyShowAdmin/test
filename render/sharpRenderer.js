@@ -57,7 +57,7 @@ function escapeXml(str = '') {
     /* ===========================
        1️⃣ BACKGROUND
        =========================== */
-
+    
     const bgBuffer = await sharp(await fetchImage(background.url))
     .resize(background.width, background.height, { fit: 'cover' })
     .png()
