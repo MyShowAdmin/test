@@ -1,5 +1,6 @@
 
 import sharp from 'sharp';
+import { fetchImage } from '../utils/fetchImage.js';
 
 function buildTextsSvg({ texts, width, height }) {
   const entries = Object.values(texts); // name, dates, message
