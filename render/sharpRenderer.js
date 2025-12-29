@@ -78,8 +78,8 @@ function escapeXml(str = '') {
        3️⃣ CROP
        =========================== */
 
-          const MIN_SIZE = 1;
-
+    const MIN_SIZE = 1;
+    const metadata = await userSharp.metadata(); // ← récupère width/height de l'image
     let left = Math.round(crop.x);
     let top = Math.round(crop.y);
     let width = Math.round(crop.width);
