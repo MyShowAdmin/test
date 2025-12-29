@@ -78,14 +78,37 @@ function escapeXml(str = '') {
        3️⃣ CROP
        =========================== */
 
-       const safeCrop = {
-        left: Math.max(0, Math.round(crop.x)),
-        top: Math.max(0, Math.round(crop.y)),
-        width: Math.round(crop.width),
-        height: Math.round(crop.height)
-      };
-      
-      userSharp = userSharp.extract(safeCrop);
+          const MIN_SIZE = 1;
+
+    let left = Math.round(crop.x);
+    let top = Math.round(crop.y);
+    let width = Math.round(crop.width);
+    let height = Math.round(crop.height);
+
+    // clamp négatifs
+    if (left < 0) {
+      width += left;
+      left = 0;
+    }
+    if (top < 0) {
+      height += top;
+      top = 0;
+    }
+
+    // clamp image bounds
+    width = Math.min(width, metadata.width - left);
+    height = Math.min(height, metadata.height - top);
+
+    // sécurité Sharp absolue
+    width = Math.max(MIN_SIZE, width);
+    height = Math.max(MIN_SIZE, height);
+
+    userSharp = userSharp.extract({
+      left,
+      top,
+      width,
+      height
+    });
 
     /* ===========================
        4️⃣ RESIZE → TARGET
