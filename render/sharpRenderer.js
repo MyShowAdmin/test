@@ -1,13 +1,14 @@
+
 import sharp from 'sharp';
 import { fetchImage } from '../utils/fetchImage.js';
 
 function buildTextsSvg({ texts, width, height }) {
-  const entries = Object.values(texts);
+  const entries = Object.values(texts); // name, dates, message
 
   const svgTexts = entries.map(t => {
     if (!t?.value) return '';
 
-    const yPx = Math.round(t.y * height);
+    const yPx = Math.round((t.y) * height);
 
     return `
       <text
@@ -42,125 +43,111 @@ function escapeXml(str = '') {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
+    export async function renderCardImage(payload) {
+    console.log(payload)
+    const {
+        background,
+        userImage,
+        crop,
+        mask,
+        target,
+        texts
+    } = payload;
 
-export async function renderCardImage(payload) {
-  const {
-    background,
-    userImage,
-    crop,
-    mask,
-    target,
-    texts
-  } = payload;
-
-  /* ===========================
-     1️⃣ BACKGROUND
-     =========================== */
-  const bgBuffer = await sharp(await fetchImage(background.url))
+    /* ===========================
+       1️⃣ BACKGROUND
+       =========================== */
+    
+    const bgBuffer = await sharp(await fetchImage(background.url))
     .resize(background.width, background.height, { fit: 'cover' })
     .png()
     .toBuffer();
 
-  /* ===========================
-     2️⃣ IMAGE UTILISATEUR
-     =========================== */
-  const userBuffer = Buffer.from(userImage.dataUrl.split(',')[1], 'base64');
-  let userSharp = sharp(userBuffer);
-  const metadata = await userSharp.metadata();
+    /* ===========================
+       2️⃣ IMAGE UTILISATEUR
+       =========================== */
 
-  /* ===========================
-     3️⃣ CROP + DÉZOOM
-     =========================== */
-  const MIN_SIZE = 1;
+    const userBuffer = Buffer.from(
+      userImage.dataUrl.split(',')[1],
+      'base64'
+    );
 
-  // Canvas assez grand pour contenir l'image et le crop
-  const canvasWidth = Math.max(crop.width, crop.x + metadata.width, metadata.width);
-  const canvasHeight = Math.max(crop.height, crop.y + metadata.height, metadata.height);
+    let userSharp = sharp(userBuffer);
 
-  // Position de l'image sur le canvas
-  const imageLeft = crop.x < 0 ? -crop.x : 0;
-  const imageTop = crop.y < 0 ? -crop.y : 0;
+    /* ===========================
+       3️⃣ CROP
+       =========================== */
 
-  // Créer le canvas transparent et placer l'image dessus
-  userSharp = sharp({
-    create: {
-      width: canvasWidth,
-      height: canvasHeight,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 }
+    userSharp = userSharp.extract({
+      left: crop.x,
+      top: crop.y,
+      width: crop.width,
+      height: crop.height
+    });
+
+    /* ===========================
+       4️⃣ RESIZE → TARGET
+       =========================== */
+
+    userSharp = userSharp.resize(target.width, target.height);
+
+    /* ===========================
+       5️⃣ MASQUE
+       =========================== */
+
+    if (mask?.type === 'svg') {
+      const svgMask = `
+        <svg
+          width="${target.width}"
+          height="${target.height}"
+          viewBox="${mask.viewBox}"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="${mask.path}" fill="white"/>
+        </svg>
+      `;
+
+      userSharp = userSharp.composite([
+        {
+          input: Buffer.from(svgMask),
+          blend: 'dest-in'
+        }
+      ]);
     }
-  }).composite([
-    {
-      input: await userSharp.png().toBuffer(),
-      left: imageLeft,
-      top: imageTop
-    }
-  ]);
 
-  // Extraire la zone crop (toujours valide)
-  userSharp = userSharp.extract({
-    left: Math.max(crop.x, 0),
-    top: Math.max(crop.y, 0),
-    width: crop.width,
-    height: crop.height
-  }).resize(target.width, target.height);
+    /* ===========================
+       6️⃣ COMPOSITE FINAL
+       =========================== */
 
-  /* ===========================
-     4️⃣ MASQUE (SVG)
-     =========================== */
-  if (mask?.type === 'svg') {
-    const svgMask = `
-      <svg
-        width="${target.width}"
-        height="${target.height}"
-        viewBox="${mask.viewBox}"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="${mask.path}" fill="white"/>
-      </svg>
-    `;
-    userSharp = userSharp.composite([
-      {
-        input: Buffer.from(svgMask),
-        blend: 'dest-in'
-      }
-    ]);
+    const userFinal = await userSharp.png().toBuffer();
+
+    /* ===========================
+      6️⃣.1 TEXTES (SVG)
+      =========================== */
+
+    const textSvg = buildTextsSvg({
+      texts,          // ← envoyé depuis le front
+      width: background.width,
+      height: background.height
+    });
+
+    const finalImage = await sharp(bgBuffer)
+      .composite([
+        {
+          input: userFinal,
+          left: target.x,
+          top: target.y
+        },
+        {
+          input: textSvg,
+          blend: 'over'
+        }
+      ])
+      .jpeg({ quality: 92 })
+      .toBuffer();
+    return {
+        buffer: finalImage,
+        width: background.width,
+        height: background.height
+    };
   }
-
-  const userFinal = await userSharp.png().toBuffer();
-  const userMetaFinal = await sharp(userFinal).metadata();
-
-  /* ===========================
-     5️⃣ COMPOSITE FINAL + TEXTES
-     =========================== */
-  // Clamp userFinal dimensions pour ne pas dépasser le background
-  const maxWidth = background.width - target.x;
-  const maxHeight = background.height - target.y;
-
-  const clampWidth = Math.min(userMetaFinal.width, maxWidth);
-  const clampHeight = Math.min(userMetaFinal.height, maxHeight);
-
-  const finalUserBuffer = await sharp(userFinal)
-    .extract({ left: 0, top: 0, width: clampWidth, height: clampHeight })
-    .toBuffer();
-
-  const textSvg = buildTextsSvg({
-    texts,
-    width: background.width,
-    height: background.height
-  });
-
-  const finalImage = await sharp(bgBuffer)
-    .composite([
-      { input: finalUserBuffer, left: Math.max(target.x, 0), top: Math.max(target.y, 0) },
-      { input: textSvg, blend: 'over' }
-    ])
-    .jpeg({ quality: 92 })
-    .toBuffer();
-
-  return {
-    buffer: finalImage,
-    width: background.width,
-    height: background.height
-  };
-}
