@@ -69,41 +69,41 @@ export async function renderCardImage(payload) {
   const metadata = await userSharp.metadata();
 
   /* ===========================
-     3️⃣ GESTION CROP + DÉZOOM
+     3️⃣ CROP + DÉZOOM
      =========================== */
   const MIN_SIZE = 1;
 
-  // Définir le canvas qui contiendra l'image même si le crop sort de l'image
-  const canvasWidth = Math.max(crop.width, metadata.width + Math.max(0, -crop.x));
-  const canvasHeight = Math.max(crop.height, metadata.height + Math.max(0, -crop.y));
+  // Canvas assez grand pour contenir l'image et le crop
+  const canvasWidth = Math.max(crop.width, crop.x + metadata.width, metadata.width);
+  const canvasHeight = Math.max(crop.height, crop.y + metadata.height, metadata.height);
 
-  // Décalage si le crop commence avant le début de l'image
-  const offsetX = Math.max(crop.x, 0);
-  const offsetY = Math.max(crop.y, 0);
+  // Position de l'image sur le canvas
+  const imageLeft = crop.x < 0 ? -crop.x : 0;
+  const imageTop = crop.y < 0 ? -crop.y : 0;
 
-  // Créer un canvas transparent
+  // Créer le canvas transparent et placer l'image dessus
   userSharp = sharp({
     create: {
       width: canvasWidth,
       height: canvasHeight,
       channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 } // transparent
+      background: { r: 0, g: 0, b: 0, alpha: 0 }
     }
-  })
-  .composite([
+  }).composite([
     {
       input: await userSharp.png().toBuffer(),
-      left: offsetX - crop.x,
-      top: offsetY - crop.y
+      left: imageLeft,
+      top: imageTop
     }
-  ])
-  .extract({
-    left: 0,
-    top: 0,
+  ]);
+
+  // Extraire la zone crop (toujours valide)
+  userSharp = userSharp.extract({
+    left: Math.max(crop.x, 0),
+    top: Math.max(crop.y, 0),
     width: crop.width,
     height: crop.height
-  })
-  .resize(target.width, target.height);
+  }).resize(target.width, target.height);
 
   /* ===========================
      4️⃣ MASQUE
