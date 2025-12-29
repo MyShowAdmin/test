@@ -78,12 +78,14 @@ function escapeXml(str = '') {
        3️⃣ CROP
        =========================== */
 
-    userSharp = userSharp.extract({
-      left: crop.x,
-      top: crop.y,
-      width: crop.width,
-      height: crop.height
-    });
+       const safeCrop = {
+        left: Math.max(0, Math.round(crop.x)),
+        top: Math.max(0, Math.round(crop.y)),
+        width: Math.round(crop.width),
+        height: Math.round(crop.height)
+      };
+      
+      userSharp = userSharp.extract(safeCrop);
 
     /* ===========================
        4️⃣ RESIZE → TARGET
