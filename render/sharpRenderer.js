@@ -4,26 +4,25 @@ import fs from 'fs';
 import path from 'path';
 import { createCanvas, loadImage, registerFont } from 'canvas';
 
-function drawMultilineText(ctx, text, x, y, options) {
+function drawMultilineTextTop(ctx, text, x, y, options) {
   const {
     maxWidth,
     align = 'center',
     color,
-    lift = 0
+    lineGap = 0
   } = options;
 
   ctx.textAlign = align;
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = color;
 
-  // 1️⃣ découpage des lignes
   const words = text.split(' ');
   const lines = [];
   let line = '';
 
   words.forEach(word => {
     const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth * 1.1 && line) {
+    if (ctx.measureText(test).width > maxWidth && line) {
       lines.push(line);
       line = word;
     } else {
@@ -32,26 +31,16 @@ function drawMultilineText(ctx, text, x, y, options) {
   });
   lines.push(line);
 
-  // 2️⃣ mesures réelles
-  const lineMetrics = lines.map(l => ctx.measureText(l));
-  const lineHeights = lineMetrics.map(
-    m => m.actualBoundingBoxAscent + m.actualBoundingBoxDescent
-  );
+  let currentY = y;
 
-  // 3️⃣ hauteur totale réelle
-  const totalHeight = lineHeights.reduce((a, b) => a + b, 0);
-
-  // 4️⃣ point de départ centré
-  let currentY = y - totalHeight / 2 - lift;
-
-  // 5️⃣ rendu
-  lines.forEach((l, i) => {
-    const m = lineMetrics[i];
+  lines.forEach(l => {
+    const m = ctx.measureText(l);
     currentY += m.actualBoundingBoxAscent;
     ctx.fillText(l, x, currentY);
-    currentY += m.actualBoundingBoxDescent;
+    currentY += m.actualBoundingBoxDescent + lineGap;
   });
 }
+
 
 
 
@@ -138,7 +127,7 @@ export async function renderCardImage(payload) {
   ctx.drawImage(finalUserImg, target.x, target.y);
 
 /* ===========================
-   5️⃣ TEXTES (HAUTEUR EXACTE)
+   5️⃣ TEXTES (TOP-ALIGNED)
    =========================== */
    Object.values(texts).forEach(t => {
     if (!t?.value) return;
@@ -148,13 +137,11 @@ export async function renderCardImage(payload) {
     const xPx = Math.round(background.width / 2);
     const yPx = Math.round(t.y * background.height);
   
-    const lift = t.font.sizePx >= 48 ? t.font.sizePx * 0.15 : 0;
-  
-    drawMultilineText(ctx, t.value, xPx, yPx, {
+    drawMultilineTextTop(ctx, t.value, xPx, yPx, {
       maxWidth: background.width * 0.8,
       align: 'center',
       color: t.color,
-      lift
+      lineGap: Math.round(t.font.sizePx * 0.2)
     });
   });
   
