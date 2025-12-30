@@ -159,7 +159,9 @@ export async function renderCardImage(payload) {
     ctx.font = `${t.font.weight || 700} ${t.font.sizePx}px "${t.font.family}"`;
 
     const centerX = Math.round(background.width / 2);
-    const baselineY = Math.round((t.y * background.height) - 124);
+    const baselineY = Math.round(
+      (t.y * background.height) - (t.blockHeightPx || 0)
+    );
 
     drawMultilineTextBaselineCentered(ctx, t.value, centerX, baselineY, {
       maxWidth: Math.round(background.width * 0.86),
