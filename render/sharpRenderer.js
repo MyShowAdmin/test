@@ -135,8 +135,9 @@ export async function renderCardImage(payload) {
     ctx.font = `${t.font.weight || 700} ${t.font.sizePx}px "${t.font.family}"`;
   
     const centerX = Math.round(background.width / 2);
+    console.log(centerX)
     const topY = Math.round(t.y * background.height);
-  
+    console.log(topY)
     drawMultilineTextTopCentered(ctx, t.value, centerX, topY, {
       maxWidth: background.width,
       color: t.color,
