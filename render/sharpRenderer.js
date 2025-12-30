@@ -3,70 +3,64 @@ import { fetchImage } from '../utils/fetchImage.js';
 import fs from 'fs';
 import path from 'path';
 
-function fontToBase64(fontPath) {
-  const fontBuffer = fs.readFileSync(fontPath);
-  return fontBuffer.toString('base64');
-}
+export function buildTextsSvg({ texts, width, height, fontsFolder = './fonts' }) {
+  // 1️⃣ Générer les @font-face pour toutes les polices utilisées
+  const fontFamilies = {};
 
-function buildTextsSvg({ texts, width, height }) {
+  Object.values(texts).forEach(t => {
+    if (!t?.value) return;
 
-  // mapping police → fichier local
-  const FONT_MAP = {
-    'Playfair Display': 'PlayfairDisplay-Regular.ttf',
-    'Montserrat': 'Montserrat-Regular.ttf',
-    'Roboto': 'Roboto-Regular.ttf'
-  };
+    const family = t.font.family;
+    const weight = t.font.weight || 400;
 
-  const usedFonts = new Set(
-    Object.values(texts)
-      .filter(t => t?.value)
-      .map(t => t.font.family)
-  );
-
-  const fontFaces = [...usedFonts].map(family => {
-    const file = FONT_MAP[family];
-    if (!file) return '';
-
-    const base64 = fontToBase64(
-      path.resolve('fonts', file)
-    );
-
-    return `
-      @font-face {
-        font-family: '${family}';
-        src: url(data:font/ttf;base64,${base64}) format('truetype');
-        font-weight: normal;
-        font-style: normal;
+    if (!fontFamilies[family]) {
+      // Chercher un fichier correspondant dans fontsFolder
+      // On privilégie TTF > OTF, Regular = 400
+      const regex = new RegExp(`${family.replace(/\s+/g, '.*')}.*\\.(ttf|otf)$`, 'i');
+      const file = fs.readdirSync(fontsFolder).find(f => regex.test(f));
+      if (!file) {
+        console.warn(`⚠️ Font file not found for "${family}"`);
+        return;
       }
-    `;
-  }).join('\n');
+      const fontData = fs.readFileSync(path.join(fontsFolder, file));
+      const ext = path.extname(file).toLowerCase().slice(1); // ttf ou otf
+      fontFamilies[family] = `
+        @font-face {
+          font-family: '${family}';
+          font-weight: ${weight};
+          src: url(data:font/${ext};base64,${fontData.toString('base64')}) format('${ext}');
+        }
+      `;
+    }
+  });
 
-  const svgTexts = Object.values(texts).map(t => {
-    if (!t?.value) return '';
+  const fontCss = Object.values(fontFamilies).join('\n');
 
-    return `
-      <text
-        x="50%"
-        y="${Math.round((t.y * height) + (t.font.sizePx * 0.35))}"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        font-family="${t.font.family}"
-        font-size="${t.font.sizePx}"
-        font-weight="${t.font.weight}"
-        fill="${t.color}"
-      >
-        ${escapeXml(t.value)}
-      </text>
-    `;
-  }).join('\n');
+  // 2️⃣ Générer les textes SVG
+  const svgTexts = Object.values(texts)
+    .map(t => {
+      if (!t?.value) return '';
+      const yPx = Math.round(t.y * height);
+      return `
+        <text
+          x="50%"
+          y="${yPx}"
+          text-anchor="middle"
+          font-family="${t.font.family}"
+          font-size="${t.font.sizePx}"
+          font-weight="${t.font.weight || 400}"
+          fill="${t.color}"
+        >
+          ${escapeXml(t.value)}
+        </text>
+      `;
+    })
+    .join('\n');
 
+  // 3️⃣ Retourner le buffer SVG complet
   return Buffer.from(`
-    <svg xmlns="http://www.w3.org/2000/svg"
-         width="${width}"
-         height="${height}">
-      <style>
-        ${fontFaces}
-      </style>
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <style>${fontCss}</style>
       ${svgTexts}
     </svg>
   `);
