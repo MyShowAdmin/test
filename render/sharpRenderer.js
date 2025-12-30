@@ -1,18 +1,53 @@
 import sharp from 'sharp';
 import { fetchImage } from '../utils/fetchImage.js';
+import fs from 'fs';
+import path from 'path';
+
+function fontToBase64(fontPath) {
+  const fontBuffer = fs.readFileSync(fontPath);
+  return fontBuffer.toString('base64');
+}
 
 function buildTextsSvg({ texts, width, height }) {
-  const entries = Object.values(texts); // name, dates, message
 
-  const svgTexts = entries.map(t => {
+  // mapping police → fichier local
+  const FONT_MAP = {
+    'Playfair Display': 'PlayfairDisplay-Regular.ttf',
+    'Montserrat': 'Montserrat-Regular.ttf',
+    'Roboto': 'Roboto-Regular.ttf'
+  };
+
+  const usedFonts = new Set(
+    Object.values(texts)
+      .filter(t => t?.value)
+      .map(t => t.font.family)
+  );
+
+  const fontFaces = [...usedFonts].map(family => {
+    const file = FONT_MAP[family];
+    if (!file) return '';
+
+    const base64 = fontToBase64(
+      path.resolve('fonts', file)
+    );
+
+    return `
+      @font-face {
+        font-family: '${family}';
+        src: url(data:font/ttf;base64,${base64}) format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+    `;
+  }).join('\n');
+
+  const svgTexts = Object.values(texts).map(t => {
     if (!t?.value) return '';
-
-    const yPx = Math.round((t.y) * height);
 
     return `
       <text
         x="50%"
-        y="${yPx}"
+        y="${Math.round((t.y * height) + (t.font.sizePx * 0.35))}"
         text-anchor="middle"
         dominant-baseline="middle"
         font-family="${t.font.family}"
@@ -26,11 +61,12 @@ function buildTextsSvg({ texts, width, height }) {
   }).join('\n');
 
   return Buffer.from(`
-    <svg
-      width="${width}"
-      height="${height}"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="${width}"
+         height="${height}">
+      <style>
+        ${fontFaces}
+      </style>
       ${svgTexts}
     </svg>
   `);
