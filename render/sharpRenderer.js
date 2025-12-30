@@ -25,11 +25,12 @@ export function buildTextsSvg({ texts, width, height, fontsFolder = './fonts' })
       }
       const fontData = fs.readFileSync(path.join(fontsFolder, file));
       const ext = path.extname(file).toLowerCase().slice(1); // ttf ou otf
+      const format = ext === 'ttf' ? 'truetype' : 'opentype';
       fontFamilies[family] = `
         @font-face {
           font-family: '${family}';
           font-weight: ${weight};
-          src: url(data:font/${ext};base64,${fontData.toString('base64')}) format('${ext}');
+          src: url(data:font/${ext};base64,${fontData.toString('base64')}) format('${format}');
         }
       `;
       console.log(fontFamilies[family])
