@@ -16,7 +16,8 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
     lineGap = 0
   } = options;
 
-  ctx.textAlign = 'center';
+  // 🔑 on gère le centrage nous-mêmes
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = color;
 
@@ -37,21 +38,24 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   if (line) lines.push(line);
 
   let currentY = baselineY;
-  console.log(currentY)
 
   lines.forEach((l, i) => {
     const m = ctx.measureText(l);
 
+    // 🔑 logique verticale INCHANGÉE
     if (i === 0) {
-      // 🔑 ALIGNEMENT BASELINE (DOM-compatible)
       currentY += m.actualBoundingBoxAscent;
     } else {
       currentY += m.actualBoundingBoxAscent + m.actualBoundingBoxDescent + lineGap;
     }
 
-    ctx.fillText(l, centerX, currentY);
+    // 🔑 centrage horizontal géométrique pur
+    const x = Math.round(centerX - m.width / 2);
+
+    ctx.fillText(l, x, currentY);
   });
 }
+
 
 export async function renderCardImage(payload) {
   const {
