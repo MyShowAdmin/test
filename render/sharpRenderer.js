@@ -4,15 +4,14 @@ import fs from 'fs';
 import path from 'path';
 import { createCanvas, loadImage, registerFont } from 'canvas';
 
-function drawMultilineTextTop(ctx, text, x, y, options) {
+function drawMultilineTextTopCentered(ctx, text, centerX, topY, options) {
   const {
     maxWidth,
-    align = 'center',
     color,
     lineGap = 0
   } = options;
 
-  ctx.textAlign = align;
+  ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = color;
 
@@ -22,7 +21,7 @@ function drawMultilineTextTop(ctx, text, x, y, options) {
 
   words.forEach(word => {
     const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth * 1.1 && line) {
+    if (ctx.measureText(test).width > maxWidth && line) {
       lines.push(line);
       line = word;
     } else {
@@ -31,15 +30,16 @@ function drawMultilineTextTop(ctx, text, x, y, options) {
   });
   lines.push(line);
 
-  let currentY = y;
+  let currentY = topY;
 
   lines.forEach(l => {
     const m = ctx.measureText(l);
     currentY += m.actualBoundingBoxAscent;
-    ctx.fillText(l, x, currentY);
+    ctx.fillText(l, centerX, currentY);
     currentY += m.actualBoundingBoxDescent + lineGap;
   });
 }
+
 
 
 
@@ -127,23 +127,23 @@ export async function renderCardImage(payload) {
   ctx.drawImage(finalUserImg, target.x, target.y);
 
 /* ===========================
-   5️⃣ TEXTES (TOP-ALIGNED)
+   5️⃣ TEXTES (TOP + CENTRÉS)
    =========================== */
    Object.values(texts).forEach(t => {
     if (!t?.value) return;
   
     ctx.font = `${t.font.weight || 700} ${t.font.sizePx}px "${t.font.family}"`;
   
-    const xPx = Math.round(background.width / 2);
-    const yPx = Math.round(t.y * background.height);
+    const centerX = Math.round(background.width / 2);
+    const topY = Math.round(t.y * background.height);
   
-    drawMultilineTextTop(ctx, t.value, xPx, yPx, {
-      maxWidth: background.width * 0.8,
-      align: 'center',
+    drawMultilineTextTopCentered(ctx, t.value, centerX, topY, {
+      maxWidth: background.width,
       color: t.color,
-      lineGap: Math.round(t.font.sizePx * 0.2)
+      lineGap: Math.round(t.font.sizePx * 0.25)
     });
   });
+  
   
   /* ===========================
      6️⃣ OUTPUT
