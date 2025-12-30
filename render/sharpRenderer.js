@@ -17,9 +17,10 @@ export function buildTextsSvg({ texts, width, height, fontsFolder = './fonts' })
       // Chercher un fichier correspondant dans fontsFolder
       // On privilégie TTF > OTF, Regular = 400
       const regex = new RegExp(`${family.replace(/\s+/g, '.*')}.*\\.(ttf|otf)$`, 'i');
+      console.log(regex)
       const file = fs.readdirSync(fontsFolder).find(f => regex.test(f));
       if (!file) {
-        console.warn(`⚠️ Font file not found for "${family}"`);
+        console.log(`⚠️ Font file not found for "${family}"`);
         return;
       }
       const fontData = fs.readFileSync(path.join(fontsFolder, file));
@@ -31,6 +32,7 @@ export function buildTextsSvg({ texts, width, height, fontsFolder = './fonts' })
           src: url(data:font/${ext};base64,${fontData.toString('base64')}) format('${ext}');
         }
       `;
+      console.log(fontFamilies[family])
     }
   });
 
