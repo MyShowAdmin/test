@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/MyShowAdmin/test#readme",
   "dependencies": {
+    "canvas": "^3.2.0",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -25,6 +26,7 @@
     "node-fetch": "^3.3.2",
     "pg": "^8.16.3",
     "resend": "^6.6.0",
-    "sharp": "^0.34.5"
+    "sharp": "^0.34.5",
+    "text-to-svg": "^3.1.5"
   }
 }
