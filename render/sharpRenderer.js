@@ -41,6 +41,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
 
   lines.forEach((l, i) => {
     const m = ctx.measureText(l);
+    console.log(m.width)
 
     // 🔑 logique verticale INCHANGÉE
     if (i === 0) {
