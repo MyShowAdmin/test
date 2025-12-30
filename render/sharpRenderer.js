@@ -89,19 +89,30 @@ export async function renderCardImage(payload) {
   /* ===========================
      5️⃣ TEXTES
      =========================== */
-  Object.values(texts).forEach(t => {
+/* ===========================
+   5️⃣ TEXTES (centrés & réhaussés)
+   =========================== */
+   Object.values(texts).forEach(t => {
     if (!t?.value) return;
-
-    ctx.font = `${t.font.weight || 400} ${t.font.sizePx}px "${t.font.family}"`;
+  
+    ctx.font = `${t.font.weight || 600} ${t.font.sizePx}px "${t.font.family}"`;
     ctx.fillStyle = t.color;
+  
+    // 🔹 centrage horizontal parfait
     ctx.textAlign = 'center';
+  
+    // 🔹 baseline centrale pour un rendu propre
+    ctx.textBaseline = 'middle';
+  
+    const xPx = Math.round((t.x ?? 0.5) * background.width);
     const yPx = Math.round(t.y * background.height);
-    const metrics = ctx.measureText(t.value);
-    const adjustedY = yPx + metrics.actualBoundingBoxAscent / 2 - metrics.actualBoundingBoxDescent / 2;
-
-ctx.fillText(t.value, background.width / 2, adjustedY);
+  
+    // 🔹 léger réhaussement automatique pour les gros textes
+    const lift = t.font.sizePx >= 48 ? t.font.sizePx * 0.15 : 0;
+  
+    ctx.fillText(t.value, xPx, yPx - lift);
   });
-
+  
   /* ===========================
      6️⃣ OUTPUT
      =========================== */
