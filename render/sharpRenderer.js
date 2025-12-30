@@ -23,7 +23,7 @@ function drawMultilineText(ctx, text, x, y, options) {
 
   words.forEach(word => {
     const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
+    if (ctx.measureText(test).width > maxWidth * 1.1 && line) {
       lines.push(line);
       line = word;
     } else {
@@ -157,8 +157,6 @@ export async function renderCardImage(payload) {
       lift
     });
   });
-  
-  
   
   /* ===========================
      6️⃣ OUTPUT
