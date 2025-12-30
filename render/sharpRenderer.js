@@ -38,7 +38,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   if (line) lines.push(line);
 
   let currentY = baselineY;
-
+  console.log(lines)
   lines.forEach((l, i) => {
     const m = ctx.measureText(l);
     console.log(m.width)
