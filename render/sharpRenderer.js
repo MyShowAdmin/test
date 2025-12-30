@@ -4,6 +4,43 @@ import fs from 'fs';
 import path from 'path';
 import { createCanvas, loadImage, registerFont } from 'canvas';
 
+function drawMultilineText(ctx, text, x, y, options) {
+  const {
+    maxWidth,
+    lineHeight,
+    align = 'center',
+    color,
+    lift = 0
+  } = options;
+
+  ctx.textAlign = align;
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = color;
+
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+
+  words.forEach(word => {
+    const testLine = line ? `${line} ${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = testLine;
+    }
+  });
+  lines.push(line);
+
+  const totalHeight = lines.length * lineHeight;
+  let startY = y - totalHeight / 2 - lift;
+
+  lines.forEach((l, i) => {
+    ctx.fillText(l, x, startY + i * lineHeight);
+  });
+}
+
+
 export async function renderCardImage(payload) {
   const { background, userImage, crop, mask, target, texts, fontsFolder = './fonts' } = payload;
 
@@ -86,32 +123,28 @@ export async function renderCardImage(payload) {
   // Dessiner l'image utilisateur masquée sur le canvas principal
   ctx.drawImage(finalUserImg, target.x, target.y);
 
-  /* ===========================
-     5️⃣ TEXTES
-     =========================== */
 /* ===========================
-   5️⃣ TEXTES (centrés & réhaussés)
+   5️⃣ TEXTES (MULTI-LIGNES STABLES)
    =========================== */
    Object.values(texts).forEach(t => {
     if (!t?.value) return;
   
-    ctx.font = `${t.font.weight || 600} ${t.font.sizePx}px "${t.font.family}"`;
-    ctx.fillStyle = t.color;
+    ctx.font = `${t.font.weight || 700} ${t.font.sizePx}px "${t.font.family}"`;
   
-    // 🔹 centrage horizontal parfait
-    ctx.textAlign = 'center';
-  
-    // 🔹 baseline centrale pour un rendu propre
-    ctx.textBaseline = 'middle';
-  
-    const xPx = Math.round((t.x ?? 0.5) * background.width);
+    const xPx = Math.round(background.width / 2);
     const yPx = Math.round(t.y * background.height);
   
-    // 🔹 léger réhaussement automatique pour les gros textes
-    const lift = t.font.sizePx >= 48 ? t.font.sizePx * 0.15 : 0;
+    const lift = t.font.sizePx >= 48 ? t.font.sizePx * 0.2 : 0;
   
-    ctx.fillText(t.value, xPx, yPx - lift);
+    drawMultilineText(ctx, t.value, xPx, yPx, {
+      maxWidth: background.width * 0.8,
+      lineHeight: t.font.sizePx * 1.2,
+      align: 'center',
+      color: t.color,
+      lift
+    });
   });
+  
   
   /* ===========================
      6️⃣ OUTPUT
