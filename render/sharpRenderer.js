@@ -96,7 +96,10 @@ export async function renderCardImage(payload) {
     ctx.fillStyle = t.color;
     ctx.textAlign = 'center';
     const yPx = Math.round(t.y * background.height);
-    ctx.fillText(t.value, background.width / 2, yPx);
+    const metrics = ctx.measureText(t.value);
+    const adjustedY = yPx + metrics.actualBoundingBoxAscent / 2 - metrics.actualBoundingBoxDescent / 2;
+
+ctx.fillText(t.value, background.width / 2, adjustedY);
   });
 
   /* ===========================
