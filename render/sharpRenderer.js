@@ -13,6 +13,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   const {
     maxWidth,
     color,
+    baselinesY = null,
     leadingRatio = 0.22
   } = options;
 
@@ -52,21 +53,26 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
 
   let currentY = baselineY;
 
-  lines.forEach((l, i) => {
-    const m = ctx.measureText(l);
+lines.forEach((l, i) => {
+  const m = ctx.measureText(l);
 
-    // 🔑 logique verticale INCHANGÉE
+  // 🔑 OVERRIDE Y SI FOURNI
+  if (baselinesY && baselinesY[i] != null) {
+    currentY = baselinesY[i];
+  } else {
+    // 🔁 COMPORTEMENT ACTUEL (fallback)
     if (i === 0) {
       currentY += m.actualBoundingBoxAscent;
     } else {
       currentY += lineHeight + leading;
     }
-    
-    // 🔑 centrage horizontal géométrique pur
-    const x = Math.round(centerX - m.width / 2);
+  }
 
-    ctx.fillText(l, x, currentY);
-  });
+  // ❌ X STRICTEMENT IDENTIQUE
+  const x = Math.round(centerX - m.width / 2);
+  ctx.fillText(l, x, currentY);
+});
+
 }
 
 
@@ -179,12 +185,10 @@ export async function renderCardImage(payload) {
     const baselineY = Math.round(
       (t.y * background.height) - (t.blockHeightPx * 2 || 0)
     );
-    console.log(`Texte : ${t.value} Baseline : ${baselineY}`)
 
     drawMultilineTextBaselineCentered(ctx, t.value, centerX, baselineY, {
       maxWidth: Math.round(background.width * 0.86),
       color: t.color,
-      lineGap: Math.round(t.font.sizePx * 0)
     });
   });
 
