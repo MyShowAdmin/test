@@ -43,7 +43,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   });
 
   let currentY = baselineY;
-  console.log(lines)
+  console.log(currentY)
   lines.forEach((l, i) => {
     const m = ctx.measureText(l);
     console.log(m.width)
@@ -51,9 +51,10 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
     // 🔑 logique verticale INCHANGÉE
     if (i === 0) {
       currentY += m.actualBoundingBoxAscent;
+      console.log(currentY += m.actualBoundingBoxAscent)
     } else {
       currentY += m.actualBoundingBoxAscent + m.actualBoundingBoxDescent + lineGap;
-
+      console.log(currentY += m.actualBoundingBoxAscent)
     }
 
     // 🔑 centrage horizontal géométrique pur
