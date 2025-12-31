@@ -51,12 +51,10 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
     // 🔑 logique verticale INCHANGÉE
     if (i === 0) {
       currentY += m.actualBoundingBoxAscent;
-      console.log(currentY += m.actualBoundingBoxAscent)
     } else {
       currentY += m.actualBoundingBoxAscent + m.actualBoundingBoxDescent + lineGap;
-      console.log(currentY += m.actualBoundingBoxAscent)
     }
-
+    
     // 🔑 centrage horizontal géométrique pur
     const x = Math.round(centerX - m.width / 2);
 
@@ -172,7 +170,7 @@ export async function renderCardImage(payload) {
 
     const centerX = Math.round(background.width / 2);
     const baselineY = Math.round(
-      (t.y * background.height) - (t.blockHeightPx || 0)
+      (t.y * background.height) - (t.blockHeightPx * 2 || 0)
     );
 
     drawMultilineTextBaselineCentered(ctx, t.value, centerX, baselineY, {
