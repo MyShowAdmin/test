@@ -43,10 +43,9 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   });
 
   let currentY = baselineY;
-  console.log(currentY)
+
   lines.forEach((l, i) => {
     const m = ctx.measureText(l);
-    console.log(m.width)
 
     // 🔑 logique verticale INCHANGÉE
     if (i === 0) {
@@ -170,7 +169,7 @@ export async function renderCardImage(payload) {
 
     const centerX = Math.round(background.width / 2);
     const baselineY = Math.round(
-      (t.y * background.height) - (t.blockHeightPx * 2 || 0)
+      (t.y * background.height) //- (t.blockHeightPx * 2 || 0)
     );
 
     drawMultilineTextBaselineCentered(ctx, t.value, centerX, baselineY, {
