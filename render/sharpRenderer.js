@@ -55,10 +55,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   lines.forEach((l, i) => {
     const m = ctx.measureText(l);
 
-    // 🔑 logique verticale INCHANGÉE
-    if (i === 0) {
-      currentY += m.actualBoundingBoxAscent;
-    } else {
+   if (i > 0) {
       currentY += lineHeight + leading;
     }
     
