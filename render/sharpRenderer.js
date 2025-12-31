@@ -22,21 +22,26 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   ctx.fillStyle = color;
 
   // Découpage en lignes avec wrap
-  const words = text.split(' ');
+  const paragraphs = text.split('\n');
   const lines = [];
-  let line = '';
 
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = test;
-    }
-  }
-  if (line) lines.push(line);
-  let x = 0;
+  paragraphs.forEach(p => {
+    const words = p.split(' ');
+    let line = '';
+  
+    words.forEach(word => {
+      const test = line ? `${line} ${word}` : word;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = test;
+      }
+    });
+  
+    if (line) lines.push(line);
+  });
+
   let currentY = baselineY;
   console.log(lines)
   lines.forEach((l, i) => {
@@ -48,11 +53,11 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
       currentY += m.actualBoundingBoxAscent;
     } else {
       currentY += m.actualBoundingBoxAscent + m.actualBoundingBoxDescent + lineGap;
+
     }
 
     // 🔑 centrage horizontal géométrique pur
-    x = Math.round(centerX - m.width / 2);
-    console.log(x)
+    const x = Math.round(centerX - m.width / 2);
 
     ctx.fillText(l, x, currentY);
   });
