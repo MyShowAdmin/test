@@ -36,7 +36,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
     }
   }
   if (line) lines.push(line);
-
+  let x = 0;
   let currentY = baselineY;
   console.log(lines)
   lines.forEach((l, i) => {
@@ -51,7 +51,8 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
     }
 
     // 🔑 centrage horizontal géométrique pur
-    const x = Math.round(centerX - m.width / 2);
+    x = Math.round(centerX - m.width / 2);
+    console.log(x)
 
     ctx.fillText(l, x, currentY);
   });
