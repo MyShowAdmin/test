@@ -10,6 +10,11 @@ import { createCanvas, loadImage, registerFont } from 'canvas';
  * (alignement identique au DOM / Shopify).
  */
 function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, options) {
+  console.log('🟢 drawMultilineTextBaselineCentered CALLED', {
+    text,
+    baselineY,
+    options
+  });
   const {
     maxWidth,
     color,
@@ -51,13 +56,13 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   const leading = Math.round((lineHeight * leadingRatio));
   console.log(leading)
 
-  let currentY = baselineY ?? 0;
+  let currentY = Number.isFinite(baselineY) ? baselineY : 0;
 
 lines.forEach((l, i) => {
   const m = ctx.measureText(l);
 
   // 🔑 OVERRIDE Y SI FOURNI
-  if (baselinesY && baselinesY[i] != null) {
+  if (Array.isArray(baselinesY) && baselinesY.length && baselinesY[i] != null) {
     currentY = baselinesY[i];
   } else {
     // 🔁 COMPORTEMENT ACTUEL (fallback)
@@ -178,11 +183,14 @@ export async function renderCardImage(payload) {
      =========================== */
   Object.values(texts).forEach(t => {
     if (!t?.value) return;
+    console.log('🟡 TEXT BLOCK', t);
 
     ctx.font = `${t.font.weight || 700} ${t.font.sizePx}px "${t.font.family}"`;
-
+    console.log('🟣 FONT SET', ctx.font);
     const centerX = Math.round(background.width / 2);
     const baselineY = Math.round(t.y * background.height);
+    console.log('🔵 baselineY', baselineY);
+    console.log('🟠 baselinesY', baselinesY);
 
     drawMultilineTextBaselineCentered(ctx, t.value, centerX, baselineY, {
       maxWidth: Math.round(background.width * 0.86),
