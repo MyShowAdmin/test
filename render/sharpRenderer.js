@@ -51,7 +51,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   const leading = Math.round((lineHeight * leadingRatio));
   console.log(leading)
 
-  let currentY = baselineY;
+  let currentY = baselineY ?? 0;
 
 lines.forEach((l, i) => {
   const m = ctx.measureText(l);
@@ -182,13 +182,12 @@ export async function renderCardImage(payload) {
     ctx.font = `${t.font.weight || 700} ${t.font.sizePx}px "${t.font.family}"`;
 
     const centerX = Math.round(background.width / 2);
-    const baselineY = Math.round(
-      (t.y * background.height) - (t.blockHeightPx * 2 || 0)
-    );
+    const baselineY = Math.round(t.y * background.height);
 
     drawMultilineTextBaselineCentered(ctx, t.value, centerX, baselineY, {
       maxWidth: Math.round(background.width * 0.86),
       color: t.color,
+      baselinesY: t.baselinesY || null
     });
   });
 
