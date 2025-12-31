@@ -176,7 +176,7 @@ export async function renderCardImage(payload) {
     drawMultilineTextBaselineCentered(ctx, t.value, centerX, baselineY, {
       maxWidth: Math.round(background.width * 0.86),
       color: t.color,
-      lineGap: Math.round(t.font.sizePx * 0.25)
+      lineGap: Math.round(t.font.sizePx * 0)
     });
   });
 
