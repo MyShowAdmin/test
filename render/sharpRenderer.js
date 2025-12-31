@@ -13,7 +13,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   const {
     maxWidth,
     color,
-    leadingRatio = 0.22
+    leadingRatio = 0.18
   } = options;
 
   // 🔑 on gère le centrage nous-mêmes
