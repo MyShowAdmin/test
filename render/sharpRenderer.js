@@ -13,7 +13,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   const {
     maxWidth,
     color,
-    leadingRatio = 0.5
+    leadingRatio = 0.125
   } = options;
 
   // 🔑 on gère le centrage nous-mêmes
@@ -44,10 +44,9 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
 
   const ref = ctx.measureText('Hg');
   const lineHeight =
-    ref.actualBoundingBoxAscent +
-    ref.actualBoundingBoxDescent;
+    (ref.actualBoundingBoxAscent + ref.actualBoundingBoxDescent);
     console.log(lineHeight)
-  const leading = Math.round(lineHeight * leadingRatio);
+  const leading = Math.round((lineHeight * leadingRatio) + lineHeight);
   console.log(leading)
 
   let currentY = baselineY;
