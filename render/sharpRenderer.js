@@ -188,9 +188,12 @@ export async function renderCardImage(payload) {
     ctx.font = `${t.font.weight || 700} ${t.font.sizePx}px "${t.font.family}"`;
     console.log('🟣 FONT SET', ctx.font);
     const centerX = Math.round(background.width / 2);
-    const baselineY = Math.round(t.y * background.height);
+    // 🔑 baselineY UNIQUEMENT SI PAS DE baselinesY
+    const baselineY = Array.isArray(t.baselinesY) && t.baselinesY.length
+      ? 0
+      : Math.round((t.y ?? 0.5) * background.height);
     console.log('🔵 baselineY', baselineY);
-    console.log('🟠 baselinesY', baselinesY);
+    console.log('🟠 baselinesY', t.baselinesY);
 
     drawMultilineTextBaselineCentered(ctx, t.value, centerX, baselineY, {
       maxWidth: Math.round(background.width * 0.86),
