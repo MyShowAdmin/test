@@ -46,7 +46,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   const lineHeight =
     ref.actualBoundingBoxAscent +
     ref.actualBoundingBoxDescent;
-
+    console.log(lineHeight)
   const leading = Math.round(lineHeight * leadingRatio);
   console.log(leading)
 
