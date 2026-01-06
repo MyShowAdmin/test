@@ -233,9 +233,13 @@ export async function renderCardImage(payload) {
     const centerX = Math.round(background.width / 2);
 
     // Baseline par défaut si pas de baselinesY
-    const baselineY = Array.isArray(t.baselinesY) && t.baselinesY.length
+   /* const baselineY = Array.isArray(t.baselinesY) && t.baselinesY.length
       ? 0
       : Math.round((t.y ?? 0.5) * background.height);
+
+      */
+
+    const baselineY = Math.round((t.y ?? 0.5) * background.height);
 
     drawMultilineTextBaselineCentered(ctx, t.value, centerX, baselineY, {
       maxWidth: Math.round(background.width * 0.86),
