@@ -70,7 +70,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
 
   if (Array.isArray(baselinesY) && baselinesY.length && baselinesY[i] != null) {
     // 🔑 Shopify donne un TOP → on convertit en BASELINE
-    currentY = baselinesY[i] + m.actualBoundingBoxAscent;
+    currentY = baselinesY[i] + m.actualBoundingBoxAscent/2;
   } else {
     if (i === 0) {
       // 🔑 baselineY est aussi un TOP
