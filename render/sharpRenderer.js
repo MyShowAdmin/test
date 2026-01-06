@@ -229,7 +229,7 @@ export async function renderCardImage(payload) {
     if (!t?.value) return;
 
     ctx.font = `${t.font.weight || 700} ${t.font.sizePx}px "${t.font.family}"`;
-
+    console.log(ctx.font)
     const centerX = Math.round(background.width / 2);
 
     // Baseline par défaut si pas de baselinesY
