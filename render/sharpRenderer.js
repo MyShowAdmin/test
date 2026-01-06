@@ -73,7 +73,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
       currentY = baselinesY[i];
     } else {
       if (i === 0) {
-        currentY += m.actualBoundingBoxAscent;
+        currentY += m.actualBoundingBoxAscent*2;
       } else {
         currentY += lineHeight + leading;
       }
