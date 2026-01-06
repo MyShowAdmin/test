@@ -78,7 +78,7 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
         currentY += lineHeight + leading;
       }
     }
-
+    console.log(currentY)
     const x = Math.round(centerX - m.width / 2);
     ctx.fillText(l, x, currentY);
   });
