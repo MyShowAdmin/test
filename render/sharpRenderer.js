@@ -66,22 +66,24 @@ function drawMultilineTextBaselineCentered(ctx, text, centerX, baselineY, option
   let currentY = Number.isFinite(baselineY) ? baselineY : 0;
 
   lines.forEach((l, i) => {
-    const m = ctx.measureText(l);
+  const m = ctx.measureText(l);
 
-    // Override Y si baselinesY fourni
-    if (Array.isArray(baselinesY) && baselinesY.length && baselinesY[i] != null) {
-      currentY = baselinesY[i];
+  if (Array.isArray(baselinesY) && baselinesY.length && baselinesY[i] != null) {
+    // 🔑 Shopify donne un TOP → on convertit en BASELINE
+    currentY = baselinesY[i] + m.actualBoundingBoxAscent;
+  } else {
+    if (i === 0) {
+      // 🔑 baselineY est aussi un TOP
+      currentY = baselineY + m.actualBoundingBoxAscent;
     } else {
-      if (i === 0) {
-        currentY += m.actualBoundingBoxAscent*2;
-      } else {
-        currentY += lineHeight + leading;
-      }
+      currentY += lineHeight + leading;
     }
-    console.log(currentY)
-    const x = Math.round(centerX - m.width / 2);
-    ctx.fillText(l, x, currentY);
-  });
+  }
+
+  const x = Math.round(centerX - m.width / 2);
+  ctx.fillText(l, x, currentY);
+});
+
 }
 
 /* ===========================
