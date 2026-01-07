@@ -25,6 +25,15 @@ app.get('/health/db', async (_, res) => {
 console.log("CLOUDINARY_URL =", process.env.CLOUDINARY_URL);
 cloudinary.v2.config();
 
+app.get('/', (req, res) => {
+  res.send('App installed successfully 👍');
+});
+
+// Callback OAuth (même si tu ne l’utilises pas vraiment)
+app.get('/auth/callback', (req, res) => {
+  res.send('OAuth callback received ✅');
+});
+
 app.post("/render-card", async (req, res) => {
   try {
     const payload = req.body.payload;
